@@ -12,23 +12,26 @@ logging.basicConfig(
 
 def build_app() -> Application:
     app = Application.builder().token(TELEGRAM_BOT_TOKEN).build()
-
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("help", help_cmd))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, on_message))
-
     return app
 
 async def main() -> None:
     app = build_app()
-
     await app.initialize()
     await app.start()
     await app.updater.start_polling(allowed_updates=["message"])
-
     print("Bot is running... Press Ctrl+C to stop.")
-    # keep alive
-    await asyncio.Event().wait()
+
+    try:
+        await asyncio.Event().wait()
+    except (asyncio.CancelledError, KeyboardInterrupt):
+        pass
+    finally:
+        await app.updater.stop()
+        await app.stop()
+        await app.shutdown()
 
 if __name__ == "__main__":
     asyncio.run(main())

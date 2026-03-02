@@ -30,8 +30,17 @@ def fetch_transcript(video_id: str) -> str:
 
 
 def explain_transcript_error(e: Exception) -> str:
-    # Keep it simple + readable (we can add specific cases later)
-    msg = str(e)
-    if not msg:
-        msg = e.__class__.__name__
-    return msg
+    msg = (str(e) or "").lower()
+
+    # common “no transcript” signals
+    if "transcript" in msg and ("not" in msg or "no" in msg):
+        return "No transcript/captions found for this video."
+    if "disabled" in msg:
+        return "Captions are disabled for this video."
+    if "unavailable" in msg or "private" in msg:
+        return "Video is unavailable (private/region/age restricted)."
+    if "no element found" in msg:
+        return "Couldn’t access captions (YouTube blocked the request or no captions exist)."
+
+    # fallback
+    return str(e) or e.__class__.__name__

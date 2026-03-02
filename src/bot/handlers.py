@@ -57,13 +57,28 @@ async def on_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
     await update.message.reply_text("🧠 Summarising...")
 
     try:
-        summary = summarise_text(transcript_text)
+        progress_msg = await update.message.reply_text("🧠 Starting summary...")
+
+        async def progress_cb(msg: str):
+            try:
+                await progress_msg.edit_text(msg)
+            except Exception:
+                pass  # ignore edit failures
+
+        summary = summarise_text(
+            transcript_text,
+            on_progress=lambda m: context.application.create_task(progress_cb(m))
+        )       
 
         # Telegram message length limit safety
         if len(summary) > 3800:
             summary = summary[:3800] + "..."
 
         await update.message.reply_text(summary)
+        try:
+            await progress_msg.edit_text("✅ Summary ready!")
+        except Exception:
+            pass        
 
     except Exception as e:
         # If summarising fails, fall back to transcript preview so you still get something
