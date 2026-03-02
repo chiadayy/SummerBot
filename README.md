@@ -26,28 +26,33 @@ The architecture is model-agnostic and can work with either Claude (Anthropic) o
 
 ## Project Structure
 
+```
 src/
-├── bot/handlers.py — Telegram conversation flow
-├── services/summarizer.py — chunking, prompting, progress logic
-├── services/youtube.py — transcript extraction
+├── bot/
+│   └── handlers.py        # telegram conversation flow
+├── services/
+│   ├── summarizer.py      # chunking, prompting, progress logic
+│   └── youtube.py         # transcript extraction
 ├── config.py
 └── main.py
+```
 
 ## Setup
-	1.	Create and activate a virtual environment
-	2.	Install dependencies from requirements.txt
-	3.	Create a .env file in the project root with:
+1. Create and activate a virtual environment  
+2. Install dependencies from `requirements.txt`  
+3. Create a `.env` file in the project root:
 
 TELEGRAM_BOT_TOKEN=your_token
 
-either:
+### Choose one provider
 ANTHROPIC_API_KEY=your_key
-OPENAI_API_KEY=your_key 
+#### OR
+OPENAI_API_KEY=your_key
 
-Do not commit the .env file.
+<b>Do not commit the .env file.
 
 ## To Run
 
 python -m src.main
 
-Then open Telegram and start the bot using /start.
+Then open Telegram and start the bot using `/start.`
