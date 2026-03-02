@@ -7,6 +7,7 @@ from src.services.youtube import (
     fetch_transcript,
     explain_transcript_error,
 )
+from src.services.summarizer import summarise_text
 
 YOUTUBE_URL_REGEX = re.compile(
     r"(https?://)?(www\.)?(youtube\.com/watch\?v=|youtu\.be/)[^\s]+",
@@ -16,8 +17,7 @@ YOUTUBE_URL_REGEX = re.compile(
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     await update.message.reply_text(
-        "Hi! Send me a YouTube link and I’ll summarise it.\n"
-        "For now, I’ll fetch the transcript and show you a preview 🙂"
+        "Hi! Send me a YouTube link and I’ll summarise it via the transcript 🙂"
     )
 
 
@@ -48,15 +48,26 @@ async def on_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
 
     try:
         transcript_text = fetch_transcript(video_id)
-
-        # Telegram message limit is ~4096 chars, so keep it safe
-        preview = transcript_text[:800].strip()
-
-        await update.message.reply_text(
-            f"✅ Transcript preview:\n\n{preview}..."
-        )
-
     except Exception as e:
         await update.message.reply_text(
             f"❌ Failed to fetch transcript.\nReason: {explain_transcript_error(e)}"
+        )
+        return
+
+    await update.message.reply_text("🧠 Summarising...")
+
+    try:
+        summary = summarise_text(transcript_text)
+
+        # Telegram message length limit safety
+        if len(summary) > 3800:
+            summary = summary[:3800] + "..."
+
+        await update.message.reply_text(summary)
+
+    except Exception as e:
+        # If summarising fails, fall back to transcript preview so you still get something
+        preview = transcript_text[:800].strip()
+        await update.message.reply_text(
+            f"❌ Summarising failed.\nReason: {e}\n\n✅ Transcript preview instead:\n\n{preview}..."
         )
